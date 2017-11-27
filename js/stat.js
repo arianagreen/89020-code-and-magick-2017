@@ -1,20 +1,36 @@
 'use strict';
+//функция для нахождения наибольшего элемента массива
+var findMaxElement = function(array) {
+  var max = -1;
+  for (var i = 0; i < array.length; i++) {
+    var currentItem = array[i];
+    if (currentItem > max) {
+      max = currentItem;
+    }
+  }
+  return max;
+}
 
 window.renderStatistics = function(ctx, names, times) {
 
-
-  var cloudPoints = [
-    [140, 50, 180, 30, 210, 40],
-    [240, 20, 290, 15, 320, 35],
-    [360, 15, 400, 20, 420, 50],
-    [480, 40, 510, 70, 505, 110],
-    [520, 140, 510, 190, 470, 210],
-    [470, 250, 410, 280, 380, 250],
-    [330, 270, 270, 270, 250, 240],
-    [190, 280, 130, 240, 140, 180],
-    [110, 180, 110, 100, 140, 80]
+  var cloudPoints = [ // это список координат для Безьера
+    [120, 10, 170, 0, 210, 10], //1
+    [250, 0, 300, 5, 340, 20], //2
+    [370, 5, 420, 5, 440, 30], //3
+    [520, 20, 560, 80, 540, 120], //4
+    [580, 140, 580, 210, 540, 210], //5
+    [530, 270, 480, 300, 430, 285], //6
+    [400, 300, 250, 290, 340, 270], //7
+    [300, 300, 280, 300, 240, 280], //8
+    [200, 295, 140, 295, 110, 260], //9
+    [60, 260, 50, 190, 70, 170], //10
+    [45, 140, 50, 70, 90, 50] //11
   ];
 
+  /* Не хотела вручную сдвигать каждое число для создания тени, и тем более переписывать два облачка в случае ошибки
+    В идеале, конечно, было бы здорово создать функцию, которая принимает начальные координаты и сама рисует облачко,
+    но я так пока не умею, поэтому начальные координаты задавала сама
+  */
   function createCloud(arr, x, y) {
     arr.forEach(function(item, i, arr) {
       if (x || y) {
@@ -25,7 +41,6 @@ window.renderStatistics = function(ctx, names, times) {
           return j + x;
         });
         ctx.bezierCurveTo(...shadow);
-
       } else {
         ctx.bezierCurveTo(...item);
       }
@@ -35,31 +50,55 @@ window.renderStatistics = function(ctx, names, times) {
     ctx.fill();
   }
 
+  //это тень
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.beginPath();
   ctx.moveTo(150, 90);
   createCloud(cloudPoints, 10, 10);
 
+  //а это облачко
   ctx.fillStyle = 'white';
   ctx.beginPath();
-  ctx.moveTo(140, 80);
+  ctx.moveTo(90, 50);
   createCloud(cloudPoints);
 
-
-  // ctx.bezierCurveTo(140, 50, 180, 30, 210, 40);
-  // ctx.bezierCurveTo(240, 20, 290, 15, 320, 35);
-  // ctx.bezierCurveTo(360, 15, 400, 20, 420, 50);
-  // ctx.bezierCurveTo(480, 40, 510, 70, 505, 110);
-  // ctx.bezierCurveTo(520, 140, 510, 190, 460, 210);
-  // ctx.bezierCurveTo(470, 250, 410, 280, 380, 250);
-  // ctx.bezierCurveTo(330, 270, 270, 270, 250, 240);
-  // ctx.bezierCurveTo(190, 280, 130, 240, 140, 180);
-  // ctx.bezierCurveTo(110, 180, 110, 100, 140, 80);
+  ctx.fillStyle = 'black';
+  ctx.font = '16px PT Mono';
+  ctx.fillText('Ура! Вы победили!', 140, 35);
+  ctx.fillText('Список результатов:', 140, 55);
 
 
+  // начинаем рисовать гистограмму
 
+  var maxTime = findMaxElement(times);
+  var maxTimeIndex = times.indexOf(maxTime);
 
+  var initialX = 140; // левая граница гистограмы
+  var initialNameY = 270; // на каком уровне располагаются имена
+  var initialBarY = 100; // верхняя точка самого высокого столбика
+  var histogramHeight = 150; //высота самого высокого столбика
+  var barWidth = 40; // ширина столбика
+  var distance = 50; // расстоянеие между столбиками
 
+  var index = histogramHeight / maxTime; //чтобы высчитать относительную высоту
 
-  // ctx.fillRect(100, 10, 520, 280);
+  for (var i = 0; i < times.length; i++) {
+    var barHeight = times[i] * index; // высота текущего стобика
+    var barX = initialX + barWidth * i + distance * i;
+    var barY = initialBarY + (histogramHeight - barHeight);
+
+    //задаем цвет столбикам
+    if (names[i] == 'Вы') {
+      ctx.fillStyle = 'rgba(255, 0, 0, 1)';
+    } else {
+      var randomOpacity = parseFloat(Math.random()).toFixed(1);
+      ctx.fillStyle = 'rgba(0, 0, 255, ' + randomOpacity + ')';
+    }
+
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+
+    ctx.fillStyle = 'black';
+    ctx.fillText(names[i], barX, initialNameY);
+    ctx.fillText(Math.round(times[i]), barX, barY - 10);
+  }
 }
