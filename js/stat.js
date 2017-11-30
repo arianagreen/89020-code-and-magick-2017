@@ -31,20 +31,15 @@ window.renderStatistics = function(ctx, names, times) {
     В идеале, конечно, было бы здорово создать функцию, которая принимает начальные координаты и сама рисует облачко,
     но я так пока не умею, поэтому начальные координаты задавала сама
   */
-  function createCloud(arr, x, y) {
+  function createCloud(arr, x = 0, y = 0) {
     arr.forEach(function(item, i, arr) {
-      if (x || y) {
-        var shadow = item.map(function(j) {
-          if(item.indexOf(j) % 2 === 0) {
-            return j + y;
-          }
-          return j + x;
-        });
-        ctx.bezierCurveTo(...shadow);
-      } else {
-        ctx.bezierCurveTo(...item);
-      }
+      var cloud = item.map(function(j) {
+        return (item.indexOf(j) % 2 === 0) ? (j + y) : (j + x);
+      });
+
+      ctx.bezierCurveTo(...cloud);
     });
+
     ctx.closePath();
     ctx.stroke();
     ctx.fill();
